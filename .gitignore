@@ -1,0 +1,14 @@
+# Secrets — never commit these
+.env
+.env.*
+!.env.example
+agent/.env
+
+# Dependencies & build output
+node_modules/
+web/node_modules/
+agent/node_modules/
+web/dist/
+artifacts/
+cache/
+deployments/*.json

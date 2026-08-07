@@ -1,0 +1,19 @@
+{
+  "name": "ajo-botchain",
+  "version": "1.0.0",
+  "description": "Ajo — on-chain thrift circles (ajo/esusu) on BOT Chain",
+  "license": "MIT",
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:testnet": "hardhat run scripts/deploy.js --network botchain_testnet",
+    "deploy": "hardhat run scripts/deploy.js --network botchain"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.10"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

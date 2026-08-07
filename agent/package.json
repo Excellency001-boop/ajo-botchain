@@ -1,0 +1,17 @@
+{
+  "name": "ajo-agent",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "The Ajo agent: plain-language circle advisor + autonomous on-chain keeper for BOT Chain",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.2",
+    "express": "^4.21.0"
+  }
+}
