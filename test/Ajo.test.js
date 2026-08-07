@@ -104,7 +104,7 @@ describe("Ajo", function () {
     await ajo.connect(bob).join(0);
     await ajo.connect(alice).start(0);
 
-    // Move past the round window, then contribute — should count as late.
+    // Move past the round window, then contribute. Should count as late.
     await ethers.provider.send("evm_increaseTime", [200]);
     await ethers.provider.send("evm_mine", []);
 

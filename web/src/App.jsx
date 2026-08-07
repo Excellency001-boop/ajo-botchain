@@ -66,14 +66,14 @@ export default function App() {
         <section className="section" id="circles">
           <div className="section-head">
             <h3>The circles</h3>
-            <p>{circles.length ? `${circles.length} on-chain · live from BOT Chain` : "None yet — start the first"}</p>
+            <p>{circles.length ? `${circles.length} on-chain · live from BOT Chain` : "None yet. Start the first one."}</p>
           </div>
           {loading ? (
             <div className="empty"><div className="em">Reading the ledger…</div></div>
           ) : circles.length === 0 ? (
             <div className="empty">
               <div className="em">No circles have been woven yet.</div>
-              <p>Create one below — you'll be its first member.</p>
+              <p>Create one below. You will be its first member.</p>
             </div>
           ) : (
             <div className="grid">
@@ -99,8 +99,8 @@ export default function App() {
           </a>
         </div>
         <div className="foot-note">
-          Built for <b>BOT Chain</b> — contribution &amp; payout settle in ~2 seconds at near-zero fees.
-          That is what makes everyday-sized ajo circles possible on-chain. <b>Àjọ</b> · Èsúsú · Adashe.
+          Built for <b>BOT Chain</b>. A contribution or a payout settles in about 2 seconds, and the fee is
+          almost nothing. That is what makes small, everyday ajo circles work on-chain. <b>Àjọ</b> · Èsúsú · Adashe.
         </div>
       </footer>
 
@@ -139,13 +139,13 @@ function Hero({ onConnect, connected }) {
     <section className="hero">
       <div className="wrap hero-grid">
         <div>
-          <span className="eyebrow">Àjọ · Èsúsú · Adashe — on-chain</span>
-          <h2>The savings circle your grandmother trusted, <em>now kept honest by code.</em></h2>
+          <span className="eyebrow">Àjọ · Èsúsú · Adashe · on-chain</span>
+          <h2>The savings circle your grandmother trusted. <em>Now kept honest by code.</em></h2>
           <p>
-            Everyone pays in a little each round. Each round, one member takes the whole pot —
-            in turn, until everyone has been paid. <b>No treasurer holds the money. The contract
-            does.</b> So no one can vanish with the pot, and paying on time builds a trust score
-            that follows you.
+            Everyone pays in a little each round. Each round, one member collects the whole pot.
+            It goes round in turn until everyone has been paid. <b>No treasurer holds the money.
+            The contract does.</b> So nobody can run off with the pot. And when you pay on time,
+            you build a trust score that follows you to your next circle.
           </p>
           <div className="hero-cta">
             {!connected && <button className="btn btn-primary" onClick={onConnect}>Connect &amp; join a circle</button>}
@@ -198,18 +198,19 @@ function WhyBotChain() {
       <div className="wrap whyband-inner">
         <div className="whyband-lead">
           <span className="eyebrow light">Why BOT Chain</span>
-          <h3>Ajo is built <em>for</em> BOT Chain — not ported to it.</h3>
+          <h3>Ajo is built <em>for</em> BOT Chain. Not ported to it.</h3>
           <p>
-            A thrift circle only works if the small, frequent money movements are effectively free
-            and instant. On a slow or expensive chain, a 200-naira weekly contribution makes no
-            sense. BOT Chain's <b>near-zero fees</b> and <b>~2-second finality</b> are exactly what
-            let an everyday ajo — the kind real market women in Ogbomoso run — live on-chain.
+            A thrift circle is small money moving often. A little in every week, for months. That
+            only works on-chain if the fees are almost nothing and the money moves fast. If it costs
+            200 naira in gas to send 200 naira, the circle is dead before it starts. BOT Chain has
+            <b> near-zero fees</b> and <b>about 2-second finality</b>. That is what lets a real ajo,
+            the kind market women in Ogbomoso run, live on-chain.
           </p>
         </div>
         <div className="whyband-stats">
-          <div className="wstat"><div className="wstat-n">~2s</div><div className="wstat-l">to finality — a payout clears before you pocket your phone</div></div>
-          <div className="wstat"><div className="wstat-n">≈0</div><div className="wstat-l">fees — so tiny weekly contributions are viable</div></div>
-          <div className="wstat"><div className="wstat-n">EVM</div><div className="wstat-l">native — the same rules, transparent to every member</div></div>
+          <div className="wstat"><div className="wstat-n">~2s</div><div className="wstat-l">to finality. A payout clears before you pocket your phone.</div></div>
+          <div className="wstat"><div className="wstat-n">≈0</div><div className="wstat-l">fees. So small weekly contributions actually make sense.</div></div>
+          <div className="wstat"><div className="wstat-n">EVM</div><div className="wstat-l">native. Same rules, open for every member to check.</div></div>
         </div>
       </div>
     </section>
@@ -226,12 +227,12 @@ function AgentStrip() {
           <span className="eyebrow light">AI-native, on-chain</span>
           <h3>Meet the Ajo agent</h3>
           <p>
-            Every circle has an agent watching it. It does two real jobs — not decoration:
+            Every circle has an agent watching it. It does two real jobs. Not decoration.
           </p>
           <div className="agentroles">
             <div className="agentrole">
               <div className="agentrole-tag">Advisor</div>
-              <p>Reads each circle's live on-chain state and explains it in plain language — who's next for the hand, who still owes, what to do now.</p>
+              <p>It reads each circle's live on-chain state and explains it in plain words. Who is next for the hand, who still owes, what to do now.</p>
             </div>
             <div className="agentrole">
               <div className="agentrole-tag">Autonomous keeper</div>

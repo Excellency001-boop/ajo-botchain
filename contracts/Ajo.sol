@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @title Ajo — on-chain thrift circles (ajo / esusu / adashe) for BOT Chain
+/// @title Ajo. On-chain thrift circles (ajo / esusu / adashe) for BOT Chain
 /// @notice A trustless version of the West-African rotating savings circle. A group
 ///         of members each contribute a fixed amount every round; every round the
 ///         whole pot is paid out to one member in turn, until everyone has been paid
-///         once. No treasurer holds the money — the contract does. On-time payments
+///         once. No treasurer holds the money. The contract does. On-time payments
 ///         build an on-chain reputation that follows the member to future circles.
 /// @dev    Single-contract registry: many circles live in one deployment as structs,
 ///         which keeps deployment cheap and the demo easy to reason about. Native BOT
 ///         is used for contributions so members never need a token approval step.
 contract Ajo {
     // ----------------------------------------------------------------------
-    // Errors — cheaper than require strings and easier to test against.
+    // Errors. Cheaper than require strings and easier to test against.
     // ----------------------------------------------------------------------
     error NotOrganizer();
     error CircleFull();
@@ -43,7 +43,7 @@ contract Ajo {
         bool    completed;      // every member has received the pot once
     }
 
-    /// @notice Reputation is global, not per-circle: it is the whole point — a member's
+    /// @notice Reputation is global, not per-circle. That is the whole point. A member's
     ///         track record travels with them.
     struct Reputation {
         uint64 onTime;   // contributions made inside the round window
@@ -66,7 +66,7 @@ contract Ajo {
     uint256 private _lock = 1; // minimal reentrancy guard (1 = open, 2 = entered)
 
     // ----------------------------------------------------------------------
-    // Events — the frontend and the AI agent read the chain purely from these.
+    // Events. The frontend and the AI agent read the chain purely from these.
     // ----------------------------------------------------------------------
     event CircleCreated(uint256 indexed circleId, address indexed organizer, string name, uint256 contribution, uint256 maxMembers, uint256 roundDuration);
     event MemberJoined(uint256 indexed circleId, address indexed member, uint256 position);
@@ -198,7 +198,7 @@ contract Ajo {
     }
 
     // ----------------------------------------------------------------------
-    // Views — everything the app and agent need in as few calls as possible.
+    // Views. Everything the app and agent need in as few calls as possible.
     // ----------------------------------------------------------------------
 
     function getCircle(uint256 circleId)

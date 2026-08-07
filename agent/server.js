@@ -1,8 +1,8 @@
-// The Ajo agent — two jobs, one process:
+// The Ajo agent. Two jobs, one process:
 //
-//   1. Advisor  (/advise)  — turns raw on-chain circle state into a warm, plain-
+//   1. Advisor  (/advise)  turns raw on-chain circle state into a warm, plain
 //      language read, using Claude. This is what the app's "Ajo agent" panel shows.
-//   2. Keeper   (background) — if a funded AGENT_PRIVATE_KEY is set, the agent
+//   2. Keeper   (background). If a funded AGENT_PRIVATE_KEY is set, the agent
 //      watches every circle and autonomously calls disburse() the moment a round
 //      is fully funded, so a payout never waits on a human. This is the piece that
 //      makes Ajo genuinely AI-native on BOT Chain: an agent acting on-chain,
@@ -54,16 +54,17 @@ app.post("/advise", async (req, res) => {
       output_config: { effort: "low" },
       system:
         "You are the Ajo agent for an on-chain thrift circle (ajo/esusu) on BOT Chain. " +
-        "Speak warmly and plainly, like a trusted circle treasurer from Ogbomoso — never like a crypto bot. " +
-        "Reply with ONE sentence (max 2), no preamble, no emoji spam (at most one). " +
-        "You may wrap a key figure or name in <b>…</b>. Never invent numbers; use only the facts given.",
+        "Speak warmly and plainly, like a trusted circle treasurer from Ogbomoso, never like a crypto bot. " +
+        "Never use the em dash. Use full stops and short, simple sentences. " +
+        "Reply with one sentence, two at most. No preamble. At most one emoji. " +
+        "You may wrap a key figure or name in <b></b> tags. Never invent numbers, use only the facts given.",
       messages: [{ role: "user", content: facts }],
     });
     const text = msg.content.find((b) => b.type === "text")?.text?.trim() || "";
     res.json({ advice: text });
   } catch (e) {
     console.error("advise error:", e.message);
-    res.json({ advice: "" }); // fail soft — the app falls back locally
+    res.json({ advice: "" }); // fail soft, the app falls back locally
   }
 });
 
@@ -71,7 +72,7 @@ function describe(c, me) {
   const mine = me && (c.members || []).some((m) => m.toLowerCase() === me.toLowerCase());
   const isRecipient = me && c.recipient && c.recipient.toLowerCase() === me.toLowerCase();
   return [
-    `Circle "${c.name}" — ${c.contribution} BOT per round, ${c.maxMembers} members, full pot ${c.pot} BOT.`,
+    `Circle "${c.name}": ${c.contribution} BOT per round, ${c.maxMembers} members, full pot ${c.pot} BOT.`,
     `Status: ${c.completed ? "completed" : c.started ? `round ${c.currentRound + 1} of ${c.maxMembers}, ${c.funded}/${c.total} members paid in` : `open, ${c.memberCount}/${c.maxMembers} joined`}.`,
     c.started && !c.completed ? `This round's pot goes to member ${c.recipient}.` : "",
     me ? `The person reading this ${mine ? "is a member" : "is not a member"}${isRecipient ? " AND is this round's recipient" : ""}.` : "",

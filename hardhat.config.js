@@ -1,7 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
-// BOT Chain Mainnet — AI-native EVM Layer 1.
+// BOT Chain Mainnet. AI-native EVM Layer 1.
 // RPC:      https://rpc.botchain.ai
 // Chain ID: 677 (0x2a5)
 // Token:    BOT
@@ -18,13 +18,13 @@ module.exports = {
     },
   },
   networks: {
-    // BOT Chain Mainnet — chainId 677, token BOT, explorer scan.botchain.ai
+    // BOT Chain Mainnet. chainId 677, token BOT, explorer scan.botchain.ai
     botchain: {
       url: process.env.BOTCHAIN_RPC || "https://rpc.botchain.ai",
       chainId: 677,
       accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
     },
-    // BOT Chain Testnet (Bohr) — chainId 968, free faucet, explorer scan.bohr.life.
+    // BOT Chain Testnet (Bohr). chainId 968, free faucet, explorer scan.bohr.life.
     // The team's recommended flow: deploy + verify here first, then apply for 1 BOT
     // and deploy to mainnet with `--network botchain`.
     botchain_testnet: {

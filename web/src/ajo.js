@@ -36,7 +36,7 @@ export function readContract() {
   return new Contract(CONTRACT_ADDRESS, abi, readProvider());
 }
 
-// Ask the injected wallet (MetaMask etc.) to switch to — or add — BOT Chain.
+// Ask the injected wallet (MetaMask etc.) to switch to BOT Chain, or add it if missing.
 export async function ensureBotChain(eth) {
   try {
     await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BOT_CHAIN.chainIdHex }] });
@@ -76,7 +76,7 @@ export async function loadCircle(contract, id) {
   const c = await contract.getCircle(id);
   const members = await contract.getMembers(id);
   const status = await contract.roundStatus(id);
-  // On-chain trust score (0–100) for each member — the reputation that travels with them.
+  // On-chain trust score (0 to 100) for each member. This is the reputation that travels with them.
   const trust = await Promise.all(members.map((m) => contract.trustScore(m).then(Number).catch(() => 50)));
   return {
     id,

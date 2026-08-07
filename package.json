@@ -1,7 +1,7 @@
 {
   "name": "ajo-botchain",
   "version": "1.0.0",
-  "description": "Ajo — on-chain thrift circles (ajo/esusu) on BOT Chain",
+  "description": "Ajo puts thrift circles (ajo/esusu) on-chain. Built on BOT Chain.",
   "license": "MIT",
   "scripts": {
     "build": "hardhat compile",
