@@ -8,7 +8,18 @@ Built for the **BOT Chain Africa Builder Challenge 2026**.
 
 - **Track:** Real-World Application · Consumer · AI Agents
 - **Chain:** BOT Chain Mainnet (chainId `677`, native token `BOT`, ~2s finality, near-zero fees)
-- **Why BOT Chain:** micro-contributions and frequent payouts are only viable when fees are negligible and finality is instant — exactly what an AI-native L1 provides.
+- **Live:** contract `0xFd47723Dd774511a3A4D7EB8Be868B31f4036683` ([verified on scan.botchain.ai](https://scan.botchain.ai/address/0xFd47723Dd774511a3A4D7EB8Be868B31f4036683#code)) · [live site](https://excellency001-boop.github.io/ajo-botchain/)
+
+---
+
+## Why BOT Chain — built for it, not ported to it
+
+A thrift circle is *defined* by small, frequent money movements: a few hundred naira in, every week, for months. That pattern only survives on-chain if two things are true:
+
+1. **Fees are effectively zero.** If it costs ₦200 in gas to contribute ₦200, the circle is dead on arrival. BOT Chain's near-zero fees make everyday-sized contributions viable — which is the whole point of ajo.
+2. **Finality is near-instant.** A payout has to feel like handing over cash. BOT Chain's ~2-second finality means a member sees the pot arrive before they've pocketed their phone.
+
+On a slow or expensive chain, Ajo would be a demo that no real person could afford to use. On BOT Chain it's a product a market woman in Ogbomoso could actually run. Ajo also leans into BOT Chain's AI-native design: an autonomous agent watches every circle and settles funded rounds itself — an AI agent taking real on-chain action, which is exactly what this L1 was built for. That's the difference between *ported to* BOT Chain and *built for* it.
 
 ---
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
-  BOT_CHAIN, CONTRACT_ADDRESS, connectWallet, readContract,
+  BOT_CHAIN, CONTRACT_ADDRESS, GITHUB_URL, connectWallet, readContract,
   loadAllCircles, short, formatEther, parseEther,
 } from "./ajo.js";
 import { askAgent } from "./agent.js";
@@ -52,6 +52,9 @@ export default function App() {
       <TopBar wallet={wallet} onConnect={onConnect} />
       <Hero onConnect={onConnect} connected={Boolean(wallet)} />
 
+      <WhyBotChain />
+      <AgentStrip />
+
       <main className="wrap">
         {!deployed && (
           <div className="banner">
@@ -60,19 +63,17 @@ export default function App() {
           </div>
         )}
 
-        <CreateCircle wallet={wallet} onConnect={onConnect} onCreated={refresh} notify={notify} />
-
         <section className="section" id="circles">
           <div className="section-head">
             <h3>The circles</h3>
-            <p>{circles.length ? `${circles.length} on-chain` : "None yet — start the first"}</p>
+            <p>{circles.length ? `${circles.length} on-chain · live from BOT Chain` : "None yet — start the first"}</p>
           </div>
           {loading ? (
             <div className="empty"><div className="em">Reading the ledger…</div></div>
           ) : circles.length === 0 ? (
             <div className="empty">
               <div className="em">No circles have been woven yet.</div>
-              <p>Create one above — you'll be its first member.</p>
+              <p>Create one below — you'll be its first member.</p>
             </div>
           ) : (
             <div className="grid">
@@ -82,13 +83,25 @@ export default function App() {
             </div>
           )}
         </section>
+
+        <CreateCircle wallet={wallet} onConnect={onConnect} onCreated={refresh} notify={notify} />
       </main>
 
       <footer className="wrap">
-        Built on <b>BOT Chain</b> · contribution &amp; payout settle in ~2s ·{" "}
-        {deployed
-          ? <a className="mono" href={`${BOT_CHAIN.explorer}/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noreferrer">contract {short(CONTRACT_ADDRESS)}</a>
-          : <span className="mono">contract pending deploy</span>}
+        <div className="foot-links">
+          {deployed && (
+            <a className="foot-link" href={`${BOT_CHAIN.explorer}/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noreferrer">
+              <span className="foot-ic">⛓</span> Contract on {BOT_CHAIN.explorer.replace("https://", "")} <span className="verified">✓ verified</span>
+            </a>
+          )}
+          <a className="foot-link" href={GITHUB_URL} target="_blank" rel="noreferrer">
+            <span className="foot-ic">◍</span> Source on GitHub
+          </a>
+        </div>
+        <div className="foot-note">
+          Built for <b>BOT Chain</b> — contribution &amp; payout settle in ~2 seconds at near-zero fees.
+          That is what makes everyday-sized ajo circles possible on-chain. <b>Àjọ</b> · Èsúsú · Adashe.
+        </div>
       </footer>
 
       {toast && <div className={`toast ${toast.err ? "err" : ""}`}>{toast.msg}</div>}
@@ -129,13 +142,23 @@ function Hero({ onConnect, connected }) {
           <span className="eyebrow">Àjọ · Èsúsú · Adashe — on-chain</span>
           <h2>The savings circle your grandmother trusted, <em>now kept honest by code.</em></h2>
           <p>
-            Neighbours pool a little each week; each week one person takes the whole hand.
-            Ajo runs that age-old circle on BOT Chain — no treasurer holding the cash, no
-            one running off with the pot. The contract collects, the contract pays out.
+            Everyone pays in a little each round. Each round, one member takes the whole pot —
+            in turn, until everyone has been paid. <b>No treasurer holds the money. The contract
+            does.</b> So no one can vanish with the pot, and paying on time builds a trust score
+            that follows you.
           </p>
           <div className="hero-cta">
             {!connected && <button className="btn btn-primary" onClick={onConnect}>Connect &amp; join a circle</button>}
-            <a className="btn btn-ghost" href="#circles">See live circles</a>
+            <a className="btn btn-ghost" href="#circles">See live circles ↓</a>
+          </div>
+          <div className="hero-proof">
+            <span className="proof-item"><b>0</b> treasurers</span>
+            <span className="proof-sep" />
+            <span className="proof-item"><b>~2s</b> payouts</span>
+            <span className="proof-sep" />
+            <span className="proof-item"><b>≈0</b> fees</span>
+            <span className="proof-sep" />
+            <span className="proof-item"><b>100%</b> on-chain</span>
           </div>
         </div>
         <CircleArt seats={seats} active={2} />
@@ -165,6 +188,59 @@ function CircleArt({ seats, active }) {
         <small>takes the hand</small>
       </div>
     </div>
+  );
+}
+
+/* ------------------------------------------------------ Why BOT Chain band */
+function WhyBotChain() {
+  return (
+    <section className="whyband">
+      <div className="wrap whyband-inner">
+        <div className="whyband-lead">
+          <span className="eyebrow light">Why BOT Chain</span>
+          <h3>Ajo is built <em>for</em> BOT Chain — not ported to it.</h3>
+          <p>
+            A thrift circle only works if the small, frequent money movements are effectively free
+            and instant. On a slow or expensive chain, a 200-naira weekly contribution makes no
+            sense. BOT Chain's <b>near-zero fees</b> and <b>~2-second finality</b> are exactly what
+            let an everyday ajo — the kind real market women in Ogbomoso run — live on-chain.
+          </p>
+        </div>
+        <div className="whyband-stats">
+          <div className="wstat"><div className="wstat-n">~2s</div><div className="wstat-l">to finality — a payout clears before you pocket your phone</div></div>
+          <div className="wstat"><div className="wstat-n">≈0</div><div className="wstat-l">fees — so tiny weekly contributions are viable</div></div>
+          <div className="wstat"><div className="wstat-n">EVM</div><div className="wstat-l">native — the same rules, transparent to every member</div></div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* --------------------------------------------------- The Ajo agent (AI) strip */
+function AgentStrip() {
+  return (
+    <section className="wrap agentstrip">
+      <div className="agentstrip-card">
+        <div className="agentstrip-halo" />
+        <div className="agentstrip-body">
+          <span className="eyebrow light">AI-native, on-chain</span>
+          <h3>Meet the Ajo agent</h3>
+          <p>
+            Every circle has an agent watching it. It does two real jobs — not decoration:
+          </p>
+          <div className="agentroles">
+            <div className="agentrole">
+              <div className="agentrole-tag">Advisor</div>
+              <p>Reads each circle's live on-chain state and explains it in plain language — who's next for the hand, who still owes, what to do now.</p>
+            </div>
+            <div className="agentrole">
+              <div className="agentrole-tag">Autonomous keeper</div>
+              <p>The moment a round is fully funded, the agent calls the payout <em>itself</em>, on-chain. No member ever has to chase it. This is the AI acting, not just talking.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -311,6 +387,28 @@ function CircleCard({ c, wallet, onConnect, refresh, notify }) {
           </div>
         </>
       )}
+
+      <div className="roster">
+        <div className="roster-head">Members &amp; trust</div>
+        {c.members.map((m, i) => {
+          const isRecipient = c.started && !c.completed && i === c.currentRound;
+          const mine = m.toLowerCase() === me;
+          const score = c.trust?.[i] ?? 50;
+          return (
+            <div key={i} className={`roster-row ${isRecipient ? "is-recipient" : ""}`}>
+              <span className="roster-seat">{i + 1}</span>
+              <span className="roster-addr mono">{short(m)}{mine && <em> · you</em>}{isRecipient && <em className="hand-tag"> · this week's hand</em>}</span>
+              <span className={`trust-chip ${score >= 80 ? "good" : score >= 50 ? "ok" : "low"}`} title="On-chain trust score (on-time payments)">{score}</span>
+            </div>
+          );
+        })}
+        {c.memberCount < c.maxMembers && (
+          <div className="roster-row empty-seat">
+            <span className="roster-seat">+</span>
+            <span className="roster-addr">{c.maxMembers - c.memberCount} seat{c.maxMembers - c.memberCount > 1 ? "s" : ""} open</span>
+          </div>
+        )}
+      </div>
 
       <AgentLine circle={c} me={me} />
 

@@ -23,6 +23,7 @@ export const BOT_CHAIN = {
 };
 
 export const CONTRACT_ADDRESS = deployment.address || "";
+export const GITHUB_URL = "https://github.com/Excellency001-boop/ajo-botchain";
 export { formatEther, parseEther };
 
 // Read-only provider: lets anyone browse circles without a wallet connected.
@@ -75,6 +76,8 @@ export async function loadCircle(contract, id) {
   const c = await contract.getCircle(id);
   const members = await contract.getMembers(id);
   const status = await contract.roundStatus(id);
+  // On-chain trust score (0–100) for each member — the reputation that travels with them.
+  const trust = await Promise.all(members.map((m) => contract.trustScore(m).then(Number).catch(() => 50)));
   return {
     id,
     organizer: c.organizer,
@@ -88,6 +91,7 @@ export async function loadCircle(contract, id) {
     completed: c.completed,
     memberCount: Number(c.memberCount),
     members,
+    trust,
     funded: Number(status.funded),
     total: Number(status.total),
     pot: status.potIfComplete,

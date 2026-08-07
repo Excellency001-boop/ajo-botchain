@@ -12,3 +12,6 @@ web/dist/
 artifacts/
 cache/
 deployments/*.json
+
+# demo helper wallet keys (local only)
+.demo-wallets.json
