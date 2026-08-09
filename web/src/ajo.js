@@ -63,25 +63,53 @@ export function isMobile() {
   return typeof navigator !== "undefined" && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
-export async function connectWallet() {
-  const eth = window.ethereum;
+// EIP-6963: every modern EVM wallet announces itself here, so we can list them all
+// and let the user pick, instead of guessing one. This is what fixes the "PC shows
+// multiple" clash and lets any wallet (MetaMask, OKX, Coinbase, Rabby, Trust) work.
+const _wallets = [];
+if (typeof window !== "undefined") {
+  window.addEventListener("eip6963:announceProvider", (e) => {
+    const d = e.detail;
+    if (d && d.info && !_wallets.some((w) => w.info.uuid === d.info.uuid)) _wallets.push(d);
+  });
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+}
+
+// Ask the wallets to announce, give them a moment, then return whatever we found.
+export function discoverWallets() {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") return resolve([]);
+    window.dispatchEvent(new Event("eip6963:requestProvider"));
+    setTimeout(() => resolve(_wallets.slice()), 250);
+  });
+}
+
+export function metamaskDeepLink() {
+  return "https://metamask.app.link/dapp/" + location.host + location.pathname;
+}
+
+// Connect with a chosen wallet (from the picker), or the default injected one.
+export async function connectWith(provider) {
+  const eth = provider || window.ethereum;
   if (!eth) {
-    // On a normal phone browser there is no wallet inside it. The wallet lives in the
-    // wallet app. On phone, send them straight into MetaMask's in-app browser with a
-    // deep link, so it is one tap instead of a dead end. On a laptop, tell them plainly.
+    // No wallet inside this browser. On a phone, that is normal: the wallet lives in
+    // the wallet app. Send them into MetaMask's in-app browser as a fallback.
     if (isMobile()) {
-      const link = "https://metamask.app.link/dapp/" + location.host + location.pathname;
-      window.location.href = link;
-      throw new Error("Opening your wallet app. If nothing happens, open this page inside MetaMask or OKX Wallet's browser.");
+      window.location.href = metamaskDeepLink();
+      throw new Error("Opening your wallet app. If nothing opens, open this page inside your wallet's own browser.");
     }
-    throw new Error("No wallet found. Install MetaMask, or open this page in your wallet's browser.");
+    throw new Error("No wallet found. Install a wallet like MetaMask, or open this page in your wallet's browser.");
   }
   await eth.request({ method: "eth_requestAccounts" });
   await ensureBotChain(eth);
-  const provider = new BrowserProvider(eth);
-  const signer = await provider.getSigner();
+  const p = new BrowserProvider(eth);
+  const signer = await p.getSigner();
   const address = await signer.getAddress();
   return { signer, address, contract: new Contract(CONTRACT_ADDRESS, abi, signer) };
+}
+
+export async function connectWallet() {
+  return connectWith(null);
 }
 
 // ---- Read helpers -----------------------------------------------------------

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
-  BOT_CHAIN, CONTRACT_ADDRESS, GITHUB_URL, connectWallet, readContract,
-  loadAllCircles, short, formatEther, parseEther,
+  BOT_CHAIN, CONTRACT_ADDRESS, GITHUB_URL, connectWith, discoverWallets,
+  readContract, loadAllCircles, short, formatEther, parseEther,
 } from "./ajo.js";
 import { askAgent } from "./agent.js";
 
@@ -10,6 +10,7 @@ export default function App() {
   const [circles, setCircles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const [picker, setPicker] = useState(null); // list of wallets to choose from, or null
   const notify = useCallback((msg, err = false) => {
     setToast({ msg, err });
     setTimeout(() => setToast(null), 4200);
@@ -44,14 +45,21 @@ export default function App() {
     return () => clearInterval(t);
   }, [refresh, deployed]);
 
-  async function onConnect() {
+  async function doConnect(provider) {
     try {
-      const w = await connectWallet();
+      const w = await connectWith(provider);
       setWallet(w);
       notify(`Welcome. You are connected as ${short(w.address)}.`);
     } catch (e) {
       notify(e.message || "Connection failed", true);
     }
+  }
+
+  async function onConnect() {
+    const wallets = await discoverWallets();
+    if (wallets.length > 1) return setPicker(wallets); // more than one, let them choose
+    if (wallets.length === 1) return doConnect(wallets[0].provider);
+    return doConnect(null); // none announced: default injected, or the mobile fallback
   }
 
   return (
@@ -112,7 +120,36 @@ export default function App() {
       </footer>
 
       {toast && <div className={`toast ${toast.err ? "err" : ""}`}>{toast.msg}</div>}
+      {picker && (
+        <WalletPicker
+          wallets={picker}
+          onPick={(w) => { setPicker(null); doConnect(w.provider); }}
+          onClose={() => setPicker(null)}
+        />
+      )}
     </>
+  );
+}
+
+/* -------------------------------------------------------------- WalletPicker */
+function WalletPicker({ wallets, onPick, onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h4>Choose your wallet</h4>
+        <p className="hint">These are the wallets on this device. Pick the one you use.</p>
+        <div className="wallet-list">
+          {wallets.map((w) => (
+            <button key={w.info.uuid} className="wallet-opt" onClick={() => onPick(w)}>
+              {w.info.icon && <img src={w.info.icon} alt="" width="26" height="26" />}
+              <span>{w.info.name}</span>
+              <span className="wallet-go">Connect</span>
+            </button>
+          ))}
+        </div>
+        <button className="btn btn-ghost btn-sm" style={{ marginTop: 14, width: "100%" }} onClick={onClose}>Cancel</button>
+      </div>
+    </div>
   );
 }
 
