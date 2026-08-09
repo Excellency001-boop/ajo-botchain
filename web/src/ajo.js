@@ -59,9 +59,23 @@ export async function ensureBotChain(eth) {
   }
 }
 
+export function isMobile() {
+  return typeof navigator !== "undefined" && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
 export async function connectWallet() {
   const eth = window.ethereum;
-  if (!eth) throw new Error("No wallet found. Install MetaMask to join a circle.");
+  if (!eth) {
+    // On a normal phone browser there is no wallet inside it. The wallet lives in the
+    // wallet app. On phone, send them straight into MetaMask's in-app browser with a
+    // deep link, so it is one tap instead of a dead end. On a laptop, tell them plainly.
+    if (isMobile()) {
+      const link = "https://metamask.app.link/dapp/" + location.host + location.pathname;
+      window.location.href = link;
+      throw new Error("Opening your wallet app. If nothing happens, open this page inside MetaMask or OKX Wallet's browser.");
+    }
+    throw new Error("No wallet found. Install MetaMask, or open this page in your wallet's browser.");
+  }
   await eth.request({ method: "eth_requestAccounts" });
   await ensureBotChain(eth);
   const provider = new BrowserProvider(eth);
