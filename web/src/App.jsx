@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   BOT_CHAIN, CONTRACT_ADDRESS, GITHUB_URL, connectWith, discoverWallets,
+  connectWalletConnect, hasWalletConnect,
   readContract, loadAllCircles, short, formatEther, parseEther,
 } from "./ajo.js";
 import { askAgent } from "./agent.js";
@@ -45,21 +46,32 @@ export default function App() {
     return () => clearInterval(t);
   }, [refresh, deployed]);
 
-  async function doConnect(provider) {
+  const runConnect = useCallback(async (fn) => {
     try {
-      const w = await connectWith(provider);
+      const w = await fn();
       setWallet(w);
       notify(`Welcome. You are connected as ${short(w.address)}.`);
     } catch (e) {
       notify(e.message || "Connection failed", true);
     }
-  }
+  }, [notify]);
 
   async function onConnect() {
-    const wallets = await discoverWallets();
-    if (wallets.length > 1) return setPicker(wallets); // more than one, let them choose
-    if (wallets.length === 1) return doConnect(wallets[0].provider);
-    return doConnect(null); // none announced: default injected, or the mobile fallback
+    const found = await discoverWallets();
+    const options = found.map((w) => ({
+      key: w.info.uuid, name: w.info.name, icon: w.info.icon,
+      action: () => runConnect(() => connectWith(w.provider)),
+    }));
+    // WalletConnect works on any phone browser, so always offer it when it is set up.
+    if (hasWalletConnect()) {
+      options.push({
+        key: "walletconnect", name: "WalletConnect", sub: "any phone wallet",
+        action: () => runConnect(connectWalletConnect),
+      });
+    }
+    if (options.length === 0) return runConnect(() => connectWith(null)); // fallback
+    if (options.length === 1) return options[0].action();
+    setPicker(options);
   }
 
   return (
@@ -121,28 +133,24 @@ export default function App() {
 
       {toast && <div className={`toast ${toast.err ? "err" : ""}`}>{toast.msg}</div>}
       {picker && (
-        <WalletPicker
-          wallets={picker}
-          onPick={(w) => { setPicker(null); doConnect(w.provider); }}
-          onClose={() => setPicker(null)}
-        />
+        <WalletPicker options={picker} onClose={() => setPicker(null)} />
       )}
     </>
   );
 }
 
 /* -------------------------------------------------------------- WalletPicker */
-function WalletPicker({ wallets, onPick, onClose }) {
+function WalletPicker({ options, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h4>Choose your wallet</h4>
-        <p className="hint">These are the wallets on this device. Pick the one you use.</p>
+        <p className="hint">Pick the wallet you use. We will open it for you.</p>
         <div className="wallet-list">
-          {wallets.map((w) => (
-            <button key={w.info.uuid} className="wallet-opt" onClick={() => onPick(w)}>
-              {w.info.icon && <img src={w.info.icon} alt="" width="26" height="26" />}
-              <span>{w.info.name}</span>
+          {options.map((o) => (
+            <button key={o.key} className="wallet-opt" onClick={() => { onClose(); o.action(); }}>
+              {o.icon ? <img src={o.icon} alt="" width="26" height="26" /> : <span className="wallet-badge">WC</span>}
+              <span>{o.name}{o.sub && <em className="wallet-sub"> · {o.sub}</em>}</span>
               <span className="wallet-go">Connect</span>
             </button>
           ))}

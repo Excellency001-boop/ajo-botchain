@@ -2,6 +2,7 @@
 import { BrowserProvider, JsonRpcProvider, Contract, formatEther, parseEther } from "ethers";
 import abi from "./abi.json";
 import deployment from "./deployment.json";
+import { WALLETCONNECT_PROJECT_ID } from "./wc-config.js";
 
 // The app targets whichever BOT Chain network the contract was deployed to
 // (testnet 968 while we ship fast, mainnet 677 for the final submission). These
@@ -101,7 +102,9 @@ export async function connectWith(provider) {
     throw new Error("No wallet found. Install a wallet like MetaMask, or open this page in your wallet's browser.");
   }
   await eth.request({ method: "eth_requestAccounts" });
-  await ensureBotChain(eth);
+  // Try to put them on BOT Chain, but do not fail the connection if the wallet is
+  // already on it or does not allow switching this way.
+  try { await ensureBotChain(eth); } catch (_) { /* keep going */ }
   const p = new BrowserProvider(eth);
   const signer = await p.getSigner();
   const address = await signer.getAddress();
@@ -110,6 +113,32 @@ export async function connectWith(provider) {
 
 export async function connectWallet() {
   return connectWith(null);
+}
+
+// WalletConnect: works on any phone browser. It shows a list of wallets, the user
+// picks one, and it opens that wallet app to approve. Needs a free Project ID.
+export function hasWalletConnect() {
+  return Boolean(WALLETCONNECT_PROJECT_ID);
+}
+
+export async function connectWalletConnect() {
+  if (!WALLETCONNECT_PROJECT_ID) throw new Error("WalletConnect is not set up yet.");
+  const { EthereumProvider } = await import("@walletconnect/ethereum-provider");
+  const wc = await EthereumProvider.init({
+    projectId: WALLETCONNECT_PROJECT_ID,
+    chains: [BOT_CHAIN.chainId],
+    optionalChains: [BOT_CHAIN.chainId],
+    rpcMap: { [BOT_CHAIN.chainId]: BOT_CHAIN.rpc },
+    showQrModal: true,
+    metadata: {
+      name: "Ajo",
+      description: "Ajo puts thrift circles on-chain. The contract keeps them honest.",
+      url: "https://excellency001-boop.github.io/ajo-botchain/",
+      icons: ["https://excellency001-boop.github.io/ajo-botchain/favicon.ico"],
+    },
+  });
+  await wc.connect(); // opens the wallet list, deep-links to the chosen wallet on phone
+  return connectWith(wc);
 }
 
 // ---- Read helpers -----------------------------------------------------------
