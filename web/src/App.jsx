@@ -24,16 +24,23 @@ export default function App() {
       setCircles(await loadAllCircles(c));
     } catch (e) {
       console.error(e);
-      notify("Couldn't reach BOT Chain. Retrying…", true);
+      notify("Cannot reach BOT Chain right now. Trying again.", true);
     } finally {
       setLoading(false);
     }
   }, [wallet, deployed, notify]);
 
+  // After an action, refresh right away and again a few times, so the state and the
+  // agent's reaction show up smoothly instead of waiting for the next poll.
+  const refreshSoon = useCallback(() => {
+    refresh();
+    [1500, 3500, 6500].forEach((ms) => setTimeout(refresh, ms));
+  }, [refresh]);
+
   useEffect(() => { refresh(); }, [refresh]);
   useEffect(() => {
     if (!deployed) return;
-    const t = setInterval(refresh, 12000); // BOT Chain finalizes in ~2s; poll gently.
+    const t = setInterval(refresh, 8000); // BOT Chain finalizes in about 2s. Poll gently but keep it live.
     return () => clearInterval(t);
   }, [refresh, deployed]);
 
@@ -41,7 +48,7 @@ export default function App() {
     try {
       const w = await connectWallet();
       setWallet(w);
-      notify(`Connected ${short(w.address)} on BOT Chain`);
+      notify(`Welcome. You are connected as ${short(w.address)}.`);
     } catch (e) {
       notify(e.message || "Connection failed", true);
     }
@@ -78,13 +85,13 @@ export default function App() {
           ) : (
             <div className="grid">
               {circles.map((c) => (
-                <CircleCard key={c.id} c={c} wallet={wallet} onConnect={onConnect} refresh={refresh} notify={notify} />
+                <CircleCard key={c.id} c={c} wallet={wallet} onConnect={onConnect} refresh={refreshSoon} notify={notify} />
               ))}
             </div>
           )}
         </section>
 
-        <CreateCircle wallet={wallet} onConnect={onConnect} onCreated={refresh} notify={notify} />
+        <CreateCircle wallet={wallet} onConnect={onConnect} onCreated={refreshSoon} notify={notify} />
       </main>
 
       <footer className="wrap">
@@ -248,23 +255,23 @@ function AgentStrip() {
 /* ------------------------------------------------------------ CreateCircle */
 function CreateCircle({ wallet, onConnect, onCreated, notify }) {
   const [name, setName] = useState("");
-  const [amount, setAmount] = useState("1");
-  const [size, setSize] = useState(6);
+  const [amount, setAmount] = useState("0.05");
+  const [size, setSize] = useState(3);
   const [days, setDays] = useState(7);
   const [busy, setBusy] = useState(false);
 
   async function submit(e) {
     e.preventDefault();
     if (!wallet) return onConnect();
-    if (!name.trim()) return notify("Give your circle a name", true);
+    if (!name.trim()) return notify("Give your circle a name first.", true);
     setBusy(true);
     try {
       const tx = await wallet.contract.createCircle(
         name.trim(), parseEther(String(amount)), Number(size), Number(days) * 86400
       );
-      notify("Creating circle… confirming on BOT Chain");
+      notify("Creating your circle on BOT Chain.");
       await tx.wait();
-      notify(`"${name}" is live. You're member #1.`);
+      notify(`"${name}" is live. You are the first member.`);
       setName("");
       onCreated();
     } catch (e) {
@@ -277,8 +284,8 @@ function CreateCircle({ wallet, onConnect, onCreated, notify }) {
   return (
     <section className="section">
       <div className="section-head">
-        <h3>Start a circle</h3>
-        <p>You become the organizer and its first member</p>
+        <h3>Start your own circle</h3>
+        <p>You are the organizer, and the first member</p>
       </div>
       <div className="card card-pad">
         <form onSubmit={submit}>
@@ -302,13 +309,13 @@ function CreateCircle({ wallet, onConnect, onCreated, notify }) {
               <select value={days} onChange={(e) => setDays(e.target.value)}>
                 {[1, 3, 7, 14, 30].map((n) => <option key={n} value={n}>{n} day{n > 1 ? "s" : ""}</option>)}
               </select>
-              <div className="hint">Paying inside the window builds your on-chain trust score.</div>
+              <div className="hint">Pay inside the window and your trust score goes up.</div>
             </div>
             <div style={{ gridColumn: "1 / -1", display: "flex", gap: 12, alignItems: "center" }}>
               <button className="btn btn-primary" disabled={busy}>
                 {busy ? "Confirming…" : wallet ? "Create circle" : "Connect to create"}
               </button>
-              <span className="hint">Each round, the full pot ({Number(amount) * Number(size)} BOT) goes to one member in turn.</span>
+              <span className="hint">Each round, the full pot ({parseFloat((Number(amount) * Number(size)).toFixed(6))} BOT) goes to one member in turn.</span>
             </div>
           </div>
         </form>
@@ -334,9 +341,9 @@ function CircleCard({ c, wallet, onConnect, refresh, notify }) {
     setBusy(kind);
     try {
       const tx = await fn();
-      notify("Confirming on BOT Chain…");
+      notify("Sending it to BOT Chain.");
       await tx.wait();
-      notify("Done ✓");
+      notify("Done. It is on-chain now.");
       refresh();
     } catch (e) {
       notify(reason(e), true);
@@ -453,10 +460,13 @@ function AgentLine({ circle, me }) {
   }, [circle.id, circle.currentRound, circle.funded, circle.started, me]);
   if (!text) return null;
   return (
-    <div style={{ padding: "0 20px 4px" }}>
-      <div className="agent" style={{ padding: 14 }}>
-        <h4 style={{ fontSize: 15, margin: 0 }}><span className="halo" /> Ajo agent</h4>
-        <div className="say" style={{ marginTop: 8 }} dangerouslySetInnerHTML={{ __html: text }} />
+    <div style={{ padding: "0 22px 6px" }}>
+      <div className="agent" style={{ padding: "15px 16px" }}>
+        <h4 style={{ fontSize: 15, margin: 0 }}>
+          <span className="halo" /> Ajo agent
+          <span className="agent-live">watching live</span>
+        </h4>
+        <div key={text} className="say" style={{ marginTop: 9 }} dangerouslySetInnerHTML={{ __html: text }} />
       </div>
     </div>
   );

@@ -41,19 +41,21 @@ function serialize(c) {
 function localAdvice(c, me) {
   const mine = me && c.members.some((m) => m.toLowerCase() === me);
   const isRecipient = me && c.recipient && c.recipient.toLowerCase() === me;
+  const people = (n) => `${n} ${n === 1 ? "person" : "people"}`;
 
-  if (c.completed) return `This circle has gone full round. Every member has taken their hand. Trust scores are updated on-chain. 🎉`;
+  if (c.completed) return `The circle is complete. Everybody has collected their hand. I have saved each person's trust on-chain. 🎉`;
 
   if (!c.started) {
     const left = c.maxMembers - c.memberCount;
-    if (left === 0) return `The circle is <b>full</b>. The organizer can start it now. Round 1's hand goes to <b>${short(c.members[0])}</b>.`;
-    return `<b>${left}</b> seat${left > 1 ? "s" : ""} left before this circle can start. ${mine ? "You're in. Sit tight." : "Join now to lock your place in the payout order."}`;
+    if (left === 0) return `The circle is full now. The organizer can start it, and the first hand goes to <b>${short(c.members[0])}</b>.`;
+    if (mine) return `You are in, so relax. We just need <b>${people(left)}</b> more before we can start.`;
+    return `We need <b>${people(left)}</b> more to begin. Join now so your turn is set early.`;
   }
 
   const waiting = c.total - c.funded;
-  if (waiting === 0) return `Everyone has paid this round. The pot of <b>${formatEther(c.pot)} BOT</b> is ready to go to <b>${short(c.recipient)}</b>. Anyone can trigger the payout.`;
+  if (waiting === 0) return `Everybody has paid this round. The <b>${formatEther(c.pot)} BOT</b> is ready for <b>${short(c.recipient)}</b>. I am sending it now.`;
 
-  if (isRecipient) return `It's <b>your hand</b> this round. ${waiting} member${waiting > 1 ? "s" : ""} still to pay in. You get <b>${formatEther(c.pot)} BOT</b> the moment the last one pays.`;
-  if (mine) return `Round ${c.currentRound + 1} is open. This week's hand goes to <b>${short(c.recipient)}</b>. Pay in on time to keep your trust score high. ${waiting} still owing.`;
-  return `Round ${c.currentRound + 1} of ${c.maxMembers}. <b>${c.funded}/${c.total}</b> paid; the hand goes to <b>${short(c.recipient)}</b>.`;
+  if (isRecipient) return `This turn is yours. Just <b>${people(waiting)}</b> left to pay, then the full <b>${formatEther(c.pot)} BOT</b> comes to you.`;
+  if (mine) return `Round ${c.currentRound + 1} is open. This turn goes to <b>${short(c.recipient)}</b>. Drop your money on time and your trust stays strong. ${people(waiting)} still to pay.`;
+  return `Round ${c.currentRound + 1} of ${c.maxMembers}. <b>${c.funded}/${c.total}</b> have paid. This turn goes to <b>${short(c.recipient)}</b>.`;
 }
