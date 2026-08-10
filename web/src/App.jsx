@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   BOT_CHAIN, CONTRACT_ADDRESS, GITHUB_URL, connectWith, discoverWallets,
-  connectWalletConnect, hasWalletConnect,
+  connectWalletConnect, hasWalletConnect, disconnectWallet,
   readContract, loadAllCircles, short, formatEther, parseEther,
 } from "./ajo.js";
 import { askAgent } from "./agent.js";
@@ -74,9 +74,15 @@ export default function App() {
     setPicker(options);
   }
 
+  async function onDisconnect() {
+    await disconnectWallet(wallet);
+    setWallet(null);
+    notify("You have disconnected.");
+  }
+
   return (
     <>
-      <TopBar wallet={wallet} onConnect={onConnect} />
+      <TopBar wallet={wallet} onConnect={onConnect} onDisconnect={onDisconnect} />
       <Hero onConnect={onConnect} connected={Boolean(wallet)} />
 
       <WhyBotChain />
@@ -162,7 +168,7 @@ function WalletPicker({ options, onClose }) {
 }
 
 /* ------------------------------------------------------------------ TopBar */
-function TopBar({ wallet, onConnect }) {
+function TopBar({ wallet, onConnect, onDisconnect }) {
   return (
     <header className="topbar">
       <div className="wrap">
@@ -176,11 +182,40 @@ function TopBar({ wallet, onConnect }) {
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <span className="chain-pill"><span className="dot" /> {BOT_CHAIN.name}</span>
           {wallet
-            ? <span className="chain-pill mono">{short(wallet.address)}</span>
+            ? <AccountMenu address={wallet.address} onDisconnect={onDisconnect} />
             : <button className="btn btn-indigo btn-sm" onClick={onConnect}>Connect wallet</button>}
         </div>
       </div>
     </header>
+  );
+}
+
+/* --------------------------------------------------------------- AccountMenu */
+function AccountMenu({ address, onDisconnect }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, [open]);
+
+  return (
+    <div className="account" onClick={(e) => e.stopPropagation()}>
+      <button className="chain-pill account-btn mono" onClick={() => setOpen((o) => !o)}>
+        <span className="dot good" /> {short(address)} <span className="caret">▾</span>
+      </button>
+      {open && (
+        <div className="account-menu">
+          <a className="account-item" href={`${BOT_CHAIN.explorer}/address/${address}`} target="_blank" rel="noreferrer">
+            View on explorer
+          </a>
+          <button className="account-item danger" onClick={() => { setOpen(false); onDisconnect(); }}>
+            Disconnect
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 

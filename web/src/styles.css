@@ -397,6 +397,25 @@ body { font-feature-settings: "kern","liga","calt"; text-rendering: optimizeLegi
 /* toast: softer, more like a system message */
 .toast { border-radius: 13px; padding: 13px 20px; box-shadow: var(--shadow-lg); animation: sayIn .3s var(--ease) both; }
 
+/* account menu (connected state) */
+.account { position: relative; }
+.account-btn { cursor: pointer; border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 8px; }
+.account-btn:hover { background: var(--paper); }
+.account-btn .caret { font-size: 10px; color: var(--ink-soft); margin-left: 2px; }
+.dot.good { background: var(--good); box-shadow: 0 0 0 3px rgba(63,125,84,.18); }
+.account-menu {
+  position: absolute; right: 0; top: calc(100% + 8px); min-width: 190px; z-index: 40;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 13px;
+  box-shadow: var(--shadow-lg); padding: 6px; animation: rise .18s var(--ease) both;
+}
+.account-item {
+  display: block; width: 100%; text-align: left; background: transparent; border: none;
+  padding: 10px 12px; border-radius: 9px; font-size: 14px; font-family: inherit; color: var(--ink);
+  text-decoration: none; cursor: pointer;
+}
+.account-item:hover { background: var(--paper-2); }
+.account-item.danger { color: var(--clay-dark); font-weight: 600; }
+
 /* wallet picker */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px;

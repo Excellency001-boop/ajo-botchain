@@ -108,11 +108,22 @@ export async function connectWith(provider) {
   const p = new BrowserProvider(eth);
   const signer = await p.getSigner();
   const address = await signer.getAddress();
-  return { signer, address, contract: new Contract(CONTRACT_ADDRESS, abi, signer) };
+  // Keep the raw provider so we can end the session on disconnect (WalletConnect).
+  return { signer, address, contract: new Contract(CONTRACT_ADDRESS, abi, signer), provider: eth };
 }
 
 export async function connectWallet() {
   return connectWith(null);
+}
+
+// End the session. WalletConnect has a real disconnect. Injected wallets do not,
+// so we just forget them on our side.
+export async function disconnectWallet(wallet) {
+  try {
+    if (wallet && wallet.provider && typeof wallet.provider.disconnect === "function") {
+      await wallet.provider.disconnect();
+    }
+  } catch (_) { /* ignore */ }
 }
 
 // WalletConnect: works on any phone browser. It shows a list of wallets, the user
