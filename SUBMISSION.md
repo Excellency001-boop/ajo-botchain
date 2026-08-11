@@ -28,7 +28,7 @@ Everything to submit and present. Deployed, verified, and live. Only the demo vi
 
 **Built with mentorship.** `add one line about a specific thing a BOT Chain mentor helped you improve.`
 
-**What is next.** Stablecoin contributions, reminders over WhatsApp, and circles that only admit members above a trust score.
+**What is next.** Stablecoin contributions, reminders over WhatsApp, circles that only admit members above a trust score, and circles that run again in cycles, the way real ajo groups save together year after year instead of stopping after one round.
 
 ## 2. Ninety-second demo script (Demo Day, Ogbomoso)
 
