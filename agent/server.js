@@ -115,7 +115,8 @@ async function startKeeper() {
     }
   }
   sweep();
-  setInterval(sweep, 15000); // BOT Chain finalizes in ~2s; a gentle 15s cadence is plenty.
+  const cadence = Number(process.env.KEEPER_INTERVAL_MS) || 15000; // snappier during a demo
+  setInterval(sweep, cadence);
 }
 
 app.listen(PORT, () => {

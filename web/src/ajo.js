@@ -154,12 +154,18 @@ export async function connectWalletConnect() {
 
 // ---- Read helpers -----------------------------------------------------------
 
-export async function loadCircle(contract, id) {
+export async function loadCircle(contract, id, me) {
   const c = await contract.getCircle(id);
   const members = await contract.getMembers(id);
   const status = await contract.roundStatus(id);
   // On-chain trust score (0 to 100) for each member. This is the reputation that travels with them.
   const trust = await Promise.all(members.map((m) => contract.trustScore(m).then(Number).catch(() => 50)));
+  // Has the connected person already paid this round? Used to hide the Contribute button
+  // so nobody can double pay and hit an error.
+  let iPaid = false;
+  if (me && c.started && !c.completed) {
+    try { iPaid = await contract.contributed(id, Number(c.currentRound), me); } catch (_) { /* ignore */ }
+  }
   return {
     id,
     organizer: c.organizer,
@@ -174,6 +180,7 @@ export async function loadCircle(contract, id) {
     memberCount: Number(c.memberCount),
     members,
     trust,
+    iPaid,
     funded: Number(status.funded),
     total: Number(status.total),
     pot: status.potIfComplete,
@@ -181,10 +188,10 @@ export async function loadCircle(contract, id) {
   };
 }
 
-export async function loadAllCircles(contract) {
+export async function loadAllCircles(contract, me) {
   const count = Number(await contract.circleCount());
   const ids = Array.from({ length: count }, (_, i) => count - 1 - i); // newest first
-  return Promise.all(ids.map((i) => loadCircle(contract, i)));
+  return Promise.all(ids.map((i) => loadCircle(contract, i, me)));
 }
 
 export function short(addr) {

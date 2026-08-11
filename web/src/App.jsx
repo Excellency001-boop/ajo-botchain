@@ -23,7 +23,7 @@ export default function App() {
     if (!deployed) { setLoading(false); return; }
     try {
       const c = wallet?.contract || readContract();
-      setCircles(await loadAllCircles(c));
+      setCircles(await loadAllCircles(c, wallet?.address));
     } catch (e) {
       console.error(e);
       notify("Cannot reach BOT Chain right now. Trying again.", true);
@@ -511,15 +511,21 @@ function CircleCard({ c, wallet, onConnect, refresh, notify }) {
             {busy === "start" ? "…" : "Start rotation"}
           </button>
         )}
-        {status === "live" && iAmMember && (
+        {status === "live" && iAmMember && !c.iPaid && !roundFull && (
           <button className="btn btn-primary btn-sm" disabled={busy === "pay"} onClick={() => act("pay", () => wallet.contract.contribute(c.id, { value: c.contribution }))}>
             {busy === "pay" ? "…" : `Contribute ${formatEther(c.contribution)} BOT`}
           </button>
         )}
+        {status === "live" && iAmMember && c.iPaid && !roundFull && (
+          <span className="hint">You have paid this round. Waiting for the rest.</span>
+        )}
         {status === "live" && roundFull && (
-          <button className="btn btn-indigo btn-sm" disabled={busy === "pay2"} onClick={() => act("pay2", () => wallet.contract.disburse(c.id))}>
-            {busy === "pay2" ? "…" : "Pay out this round"}
-          </button>
+          <>
+            <span className="hint">Round is full. The agent is releasing the pot.</span>
+            <button className="btn btn-ghost btn-sm" disabled={busy === "pay2"} onClick={() => act("pay2", () => wallet.contract.disburse(c.id))}>
+              {busy === "pay2" ? "…" : "Release now"}
+            </button>
+          </>
         )}
         {status === "open" && iAmMember && !iAmOrganizer && (
           <span className="hint">You're in. Waiting for the organizer to start.</span>
