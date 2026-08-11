@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import {
   BOT_CHAIN, CONTRACT_ADDRESS, GITHUB_URL, connectWith, discoverWallets,
   connectWalletConnect, hasWalletConnect, disconnectWallet,
@@ -12,25 +12,41 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
   const [picker, setPicker] = useState(null); // list of wallets to choose from, or null
+  const [payout, setPayout] = useState(null); // big banner when the agent releases a pot
   const notify = useCallback((msg, err = false) => {
     setToast({ msg, err });
     setTimeout(() => setToast(null), 4200);
   }, []);
+  const celebrate = useCallback((data) => {
+    setPayout(data);
+    setTimeout(() => setPayout(null), 7000);
+  }, []);
 
   const deployed = Boolean(CONTRACT_ADDRESS);
+  const prevRef = useRef({}); // last-seen state per circle, to spot a fresh payout
 
   const refresh = useCallback(async () => {
     if (!deployed) { setLoading(false); return; }
     try {
       const c = wallet?.contract || readContract();
-      setCircles(await loadAllCircles(c, wallet?.address));
+      const fresh = await loadAllCircles(c, wallet?.address);
+      // Did any round just pay out since we last looked? If so, announce it loudly.
+      for (const nc of fresh) {
+        const pc = prevRef.current[nc.id];
+        if (pc && (nc.currentRound > pc.currentRound || (nc.completed && !pc.completed))) {
+          const recipient = pc.members[pc.currentRound];
+          if (recipient) celebrate({ amount: formatEther(pc.pot), to: short(recipient), name: pc.name });
+        }
+      }
+      prevRef.current = Object.fromEntries(fresh.map((x) => [x.id, x]));
+      setCircles(fresh);
     } catch (e) {
       console.error(e);
       notify("Cannot reach BOT Chain right now. Trying again.", true);
     } finally {
       setLoading(false);
     }
-  }, [wallet, deployed, notify]);
+  }, [wallet, deployed, notify, celebrate]);
 
   // After an action, refresh right away and again a few times, so the state and the
   // agent's reaction show up smoothly instead of waiting for the next poll.
@@ -137,6 +153,16 @@ export default function App() {
         </div>
       </footer>
 
+      {payout && (
+        <div className="payout-banner">
+          <div className="payout-halo" />
+          <div className="payout-body">
+            <div className="payout-tag">The agent released the pot</div>
+            <div className="payout-amount">{payout.amount} <small>BOT</small></div>
+            <div className="payout-to">sent to {payout.to}, on its own</div>
+          </div>
+        </div>
+      )}
       {toast && <div className={`toast ${toast.err ? "err" : ""}`}>{toast.msg}</div>}
       {picker && (
         <WalletPicker options={picker} onClose={() => setPicker(null)} />

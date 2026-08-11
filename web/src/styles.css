@@ -397,6 +397,30 @@ body { font-feature-settings: "kern","liga","calt"; text-rendering: optimizeLegi
 /* toast: softer, more like a system message */
 .toast { border-radius: 13px; padding: 13px 20px; box-shadow: var(--shadow-lg); animation: sayIn .3s var(--ease) both; }
 
+/* payout moment. Big and clear so the camera catches the agent sending the pot. */
+.payout-banner {
+  position: fixed; top: 84px; left: 50%; transform: translateX(-50%); z-index: 55;
+  min-width: 300px; max-width: 92vw; overflow: hidden;
+  background: linear-gradient(150deg, var(--indigo-800), var(--indigo-900));
+  border: 1px solid rgba(217,164,65,.3); border-radius: 18px;
+  box-shadow: var(--shadow-lg); padding: 20px 26px; text-align: center;
+  animation: payoutIn .5s var(--ease) both;
+}
+.payout-halo {
+  position: absolute; inset: -40% -10% auto -10%; height: 160px;
+  background: radial-gradient(60% 100% at 50% 0%, rgba(231,195,126,.35), transparent 70%);
+}
+.payout-body { position: relative; }
+.payout-tag { color: var(--ochre-soft); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+.payout-amount { font-family: Fraunces, serif; font-weight: 600; font-size: 40px; color: #fff; line-height: 1.1; margin: 4px 0 2px; }
+.payout-amount small { font-size: 16px; color: var(--ochre-soft); font-family: Inter; }
+.payout-to { color: #d6d3e6; font-size: 14px; }
+@keyframes payoutIn {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(.96); }
+  60% { transform: translateX(-50%) translateY(0) scale(1.02); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
 /* account menu (connected state) */
 .account { position: relative; }
 .account-btn { cursor: pointer; border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 8px; }
