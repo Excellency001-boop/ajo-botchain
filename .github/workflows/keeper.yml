@@ -1,0 +1,21 @@
+name: Ajo keeper
+
+# Runs the autonomous payout keeper on GitHub's free servers, on a timer.
+# No server, no card. Any fully funded round gets paid out on its own.
+on:
+  schedule:
+    - cron: "*/5 * * * *" # about every 5 minutes
+  workflow_dispatch: {}   # also lets you run it by hand from the Actions tab
+
+jobs:
+  keep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install ethers@6.13.2 --no-audit --no-fund
+      - run: node scripts/keeper-once.mjs
+        env:
+          AGENT_PRIVATE_KEY: ${{ secrets.AGENT_PRIVATE_KEY }}
