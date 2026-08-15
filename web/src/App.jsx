@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import {
   BOT_CHAIN, CONTRACT_ADDRESS, GITHUB_URL, connectWith, discoverWallets,
-  connectWalletConnect, hasWalletConnect, disconnectWallet,
+  connectWalletConnect, hasWalletConnect, warmWalletConnect, disconnectWallet,
   readContract, loadAllCircles, short, formatEther, parseEther,
 } from "./ajo.js";
 import { askAgent } from "./agent.js";
@@ -59,7 +59,7 @@ export default function App() {
   // uses it, the QR opens fast instead of loading on the spot.
   useEffect(() => {
     if (!hasWalletConnect()) return;
-    const t = setTimeout(() => { import("@walletconnect/ethereum-provider").catch(() => {}); }, 1500);
+    const t = setTimeout(() => { warmWalletConnect()?.catch(() => {}); }, 1500);
     return () => clearTimeout(t);
   }, []);
 
@@ -82,20 +82,28 @@ export default function App() {
 
   async function onConnect() {
     const found = await discoverWallets();
-    const options = found.map((w) => ({
-      key: w.info.uuid, name: w.info.name, icon: w.info.icon,
-      action: () => runConnect(() => connectWith(w.provider)),
-    }));
-    // WalletConnect works on any phone browser, so always offer it when it is set up.
-    if (hasWalletConnect()) {
-      options.push({
+    // One installed wallet: connect straight to it. No picker, no wait.
+    if (found.length === 1) return runConnect(() => connectWith(found[0].provider));
+    // Several installed wallets: let them choose, and offer WalletConnect too.
+    if (found.length > 1) {
+      const options = found.map((w) => ({
+        key: w.info.uuid, name: w.info.name, icon: w.info.icon,
+        action: () => runConnect(() => connectWith(w.provider)),
+      }));
+      if (hasWalletConnect()) options.push({
         key: "walletconnect", name: "WalletConnect", sub: "any phone wallet",
         action: () => runConnect(connectWalletConnect),
       });
+      return setPicker(options);
     }
-    if (options.length === 0) return runConnect(() => connectWith(null)); // fallback
-    if (options.length === 1) return options[0].action();
-    setPicker(options);
+    // Nothing announced. Inside a wallet's own browser there is still an injected
+    // wallet, so use it directly. That is the fast path on phones.
+    if (typeof window !== "undefined" && window.ethereum) {
+      return runConnect(() => connectWith(window.ethereum));
+    }
+    // A plain phone browser with no wallet: go through WalletConnect.
+    if (hasWalletConnect()) return runConnect(connectWalletConnect);
+    return runConnect(() => connectWith(null));
   }
 
   async function onDisconnect() {

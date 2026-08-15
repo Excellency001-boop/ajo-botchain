@@ -135,22 +135,34 @@ export function hasWalletConnect() {
   return Boolean(WALLETCONNECT_PROJECT_ID);
 }
 
+// Pre-start WalletConnect in the background so the handshake is already done by the
+// time someone taps Connect. Cached, so it only runs once.
+let _wcPromise = null;
+export function warmWalletConnect() {
+  if (!WALLETCONNECT_PROJECT_ID) return null;
+  if (!_wcPromise) {
+    _wcPromise = import("@walletconnect/ethereum-provider")
+      .then(({ EthereumProvider }) => EthereumProvider.init({
+        projectId: WALLETCONNECT_PROJECT_ID,
+        chains: [BOT_CHAIN.chainId],
+        optionalChains: [BOT_CHAIN.chainId],
+        rpcMap: { [BOT_CHAIN.chainId]: BOT_CHAIN.rpc },
+        showQrModal: true,
+        metadata: {
+          name: "Ajo",
+          description: "Ajo puts thrift circles on-chain. The contract keeps them honest.",
+          url: "https://excellency001-boop.github.io/ajo-botchain/",
+          icons: ["https://excellency001-boop.github.io/ajo-botchain/favicon.ico"],
+        },
+      }))
+      .catch((e) => { _wcPromise = null; throw e; });
+  }
+  return _wcPromise;
+}
+
 export async function connectWalletConnect() {
   if (!WALLETCONNECT_PROJECT_ID) throw new Error("WalletConnect is not set up yet.");
-  const { EthereumProvider } = await import("@walletconnect/ethereum-provider");
-  const wc = await EthereumProvider.init({
-    projectId: WALLETCONNECT_PROJECT_ID,
-    chains: [BOT_CHAIN.chainId],
-    optionalChains: [BOT_CHAIN.chainId],
-    rpcMap: { [BOT_CHAIN.chainId]: BOT_CHAIN.rpc },
-    showQrModal: true,
-    metadata: {
-      name: "Ajo",
-      description: "Ajo puts thrift circles on-chain. The contract keeps them honest.",
-      url: "https://excellency001-boop.github.io/ajo-botchain/",
-      icons: ["https://excellency001-boop.github.io/ajo-botchain/favicon.ico"],
-    },
-  });
+  const wc = await warmWalletConnect(); // ready already if we warmed it at load
   await wc.connect(); // opens the wallet list, deep-links to the chosen wallet on phone
   return connectWith(wc);
 }
