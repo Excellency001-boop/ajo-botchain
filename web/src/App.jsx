@@ -55,6 +55,14 @@ export default function App() {
     [1500, 3500, 6500].forEach((ms) => setTimeout(refresh, ms));
   }, [refresh]);
 
+  // Warm up the WalletConnect code in the background after load, so if someone
+  // uses it, the QR opens fast instead of loading on the spot.
+  useEffect(() => {
+    if (!hasWalletConnect()) return;
+    const t = setTimeout(() => { import("@walletconnect/ethereum-provider").catch(() => {}); }, 1500);
+    return () => clearTimeout(t);
+  }, []);
+
   useEffect(() => { refresh(); }, [refresh]);
   useEffect(() => {
     if (!deployed) return;

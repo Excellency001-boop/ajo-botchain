@@ -76,12 +76,15 @@ if (typeof window !== "undefined") {
   window.dispatchEvent(new Event("eip6963:requestProvider"));
 }
 
-// Ask the wallets to announce, give them a moment, then return whatever we found.
+// Wallets announce themselves the moment the page loads, so by the time someone
+// clicks Connect the list is already ready. Return it instantly in that case, and
+// only wait a brief moment if nothing has announced yet. This kills the lag.
 export function discoverWallets() {
   return new Promise((resolve) => {
     if (typeof window === "undefined") return resolve([]);
     window.dispatchEvent(new Event("eip6963:requestProvider"));
-    setTimeout(() => resolve(_wallets.slice()), 250);
+    if (_wallets.length > 0) return resolve(_wallets.slice()); // already here, no wait
+    setTimeout(() => resolve(_wallets.slice()), 120);
   });
 }
 
